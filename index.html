@@ -4,62 +4,96 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>CivicDesk: Public Grievance Redressal System</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
-:root{--bg:#eef2f6;--card:#fff;--ink:#10243e;--muted:#566579;--line:#d5dde7;--brand:#0f766e;--brand-ink:#fff;--soft:#e3f1ef;--urgent:#b42318;--high:#a16207;--normal:#1d4ed8;--ok:#15803d}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0d1620;--card:#152230;--ink:#e8eef5;--muted:#9bacbe;--line:#27384a;--brand:#2dd4bf;--brand-ink:#06201d;--soft:#12332f;--urgent:#ff8a7a;--high:#f5c04a;--normal:#8db2ff;--ok:#6ee7a0}}
-:root[data-theme="dark"]{--bg:#0d1620;--card:#152230;--ink:#e8eef5;--muted:#9bacbe;--line:#27384a;--brand:#2dd4bf;--brand-ink:#06201d;--soft:#12332f;--urgent:#ff8a7a;--high:#f5c04a;--normal:#8db2ff;--ok:#6ee7a0}
-*{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
-header{padding:28px 20px 18px;max-width:1180px;margin:auto}
-h1{font:700 2.1rem/1.1 Georgia,"Times New Roman",serif;margin:0 0 4px;letter-spacing:-.01em}
-header p{margin:0;color:var(--muted);max-width:60ch}
-h2{font:700 1.05rem/1.2 Georgia,serif;margin:0 0 12px}
-.trays{display:flex;gap:12px;margin-top:18px;flex-wrap:wrap}
-.tray{flex:1 1 150px;background:var(--card);border:1px solid var(--line);border-left-width:6px;border-radius:6px;padding:10px 14px}
-.tray b{display:block;font:700 2rem/1 Georgia,serif}
-.tray span{color:var(--muted);font-size:.85rem}
-.t0{border-left-color:var(--urgent)}.t1{border-left-color:var(--high)}.t2{border-left-color:var(--normal)}
-main{max-width:1180px;margin:auto;padding:0 20px 90px;display:grid;grid-template-columns:330px 1fr;gap:18px;align-items:start}
-.rail{display:grid;gap:18px}
-.card{background:var(--card);border:1px solid var(--line);border-radius:6px;padding:16px}
-label{display:block;font-size:.85rem;color:var(--muted);margin:10px 0 3px}
-input,select{width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:4px;background:var(--bg);color:var(--ink);font:inherit}
-button{font:inherit;font-weight:600;padding:8px 14px;border-radius:4px;border:1px solid var(--brand);background:var(--brand);color:var(--brand-ink);cursor:pointer}
-button.alt{background:transparent;color:var(--brand)}
-button:hover{filter:brightness(1.08)}
-:focus-visible{outline:3px solid var(--normal);outline-offset:2px}
-.row{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
-.row>*{flex:1 1 auto}
-.bar{display:grid;grid-template-columns:1fr 1fr auto;gap:8px;align-items:end;margin-bottom:10px}
-.bar.s{grid-template-columns:200px 1fr auto}
-.bar label{margin-top:0}
-.wrap{overflow-x:auto}
+:root{--navy:#0b1b3a;--paper:#f2f4f9;--card:#fff;--ink:#0e1a33;--muted:#5d6b85;--line:#e2e7f0;--brand:#0f9d8e;--brand-d:#0b7c70;--gold:#c9a24b;--shadow:0 1px 2px rgba(11,27,58,.06),0 14px 34px -14px rgba(11,27,58,.22)}
+@media (prefers-color-scheme:dark){:root{--paper:#08101e;--card:#0f1a2e;--ink:#e9eef8;--muted:#98a6bf;--line:#1d2b44;--shadow:0 1px 2px rgba(0,0,0,.3),0 14px 34px -14px rgba(0,0,0,.6)}}
+*{box-sizing:border-box}html{scroll-behavior:smooth;scroll-padding-top:76px}
+body{margin:0;background:var(--paper);color:var(--ink);font:15px/1.55 Manrope,system-ui,-apple-system,"Segoe UI",sans-serif}
+.in{max-width:1180px;margin:auto;padding:0 22px}
+.nav{position:sticky;top:0;z-index:5;background:rgba(11,27,58,.94);backdrop-filter:blur(12px);border-bottom:1px solid rgba(255,255,255,.08)}
+.nav .in{display:flex;align-items:center;justify-content:space-between;height:60px}
+.brand{display:flex;align-items:center;gap:10px;color:#fff;text-decoration:none;font:700 1.2rem Fraunces,Georgia,serif}
+.links{display:flex;gap:22px}.links a{color:#b9c6e0;text-decoration:none;font-weight:600;font-size:.9rem}.links a:hover{color:#fff}
+.hero{background:radial-gradient(1000px 420px at 85% -10%,#1d3a73 0,transparent 60%),var(--navy);color:#fff;padding:64px 0 54px}
+h1{font:700 clamp(2.1rem,5vw,3.5rem)/1.06 Fraunces,Georgia,serif;letter-spacing:-.02em;margin:0 0 16px;max-width:15ch}
+.lead{color:#b9c6e0;font-size:1.1rem;max-width:56ch;margin:0 0 26px}
+.cta{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:38px}
+.lanes{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.lane{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.13);border-radius:16px;padding:16px 18px;animation:rise .6s both}
+.lane:nth-child(2){animation-delay:.08s}.lane:nth-child(3){animation-delay:.16s}
+@keyframes rise{from{opacity:0;transform:translateY(14px)}}
+.lh{display:flex;align-items:baseline;gap:10px;margin-bottom:12px}
+.lh b{font:700 2.6rem/1 Fraunces,Georgia,serif}
+.lh span{color:#c9d5ec;font-weight:600;display:flex;align-items:center;gap:8px}
+.lh span:before{content:"";width:9px;height:9px;border-radius:50%;background:var(--c)}
+.l0{--c:#ff6b6f}.l1{--c:#ffb340}.l2{--c:#6ea8ff}
+.chips{display:flex;flex-wrap:wrap;gap:6px;min-height:28px}
+.chip{padding:3px 10px;border-radius:99px;background:rgba(255,255,255,.1);color:#dbe5f7;font-weight:600;font-size:.85rem;font-variant-numeric:tabular-nums}
+.chip.head{background:var(--gold);color:var(--navy)}
+.more{color:#8fa1c4;font-size:.85rem;align-self:center}
+.meta{color:#8fa1c4;font-size:.9rem;margin:18px 0 0}
+main{max-width:1180px;margin:auto;padding:30px 22px 90px;display:grid;grid-template-columns:340px 1fr;gap:22px;align-items:start}
+.rail{display:grid;gap:22px;position:sticky;top:78px}.col{display:grid;gap:22px;min-width:0}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:22px;box-shadow:var(--shadow)}
+h2{font:700 1.25rem/1.2 Fraunces,Georgia,serif;margin:0 0 4px}.sub{color:var(--muted);margin:0 0 14px;font-size:.9rem}
+label{display:block;font-size:.82rem;font-weight:600;color:var(--muted);margin:12px 0 4px}
+input,select{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--paper);color:var(--ink);font:inherit}
+input:focus,select:focus{border-color:var(--brand);outline:none;box-shadow:0 0 0 3px rgba(15,157,142,.22)}
+.btn,button{display:inline-flex;align-items:center;justify-content:center;font:inherit;font-weight:700;padding:10px 18px;border-radius:10px;border:1px solid var(--brand);background:var(--brand);color:#fff;cursor:pointer;text-decoration:none;transition:background .15s}
+button:hover,.btn:hover{background:var(--brand-d)}
+button.alt{background:transparent;color:var(--brand)}button.alt:hover{background:rgba(15,157,142,.1)}
+.btn.gold{background:var(--gold);border-color:var(--gold);color:var(--navy)}.btn.gold:hover{background:#d8b45c}
+.btn.ghost{background:transparent;border-color:rgba(255,255,255,.35)}.btn.ghost:hover{background:rgba(255,255,255,.1)}
+:focus-visible{outline:3px solid #6ea8ff;outline-offset:2px}
+.row{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}.row>*{flex:1 1 auto}
+.bar{display:grid;grid-template-columns:1fr 1fr auto;gap:10px;align-items:end;margin-bottom:12px}.bar.s{grid-template-columns:210px 1fr auto}.bar label{margin-top:0}
+.wrap{overflow-x:auto;border:1px solid var(--line);border-radius:12px;margin-top:6px}
 table{width:100%;border-collapse:collapse;font-size:.9rem}
-th,td{text-align:left;padding:7px 8px;border-bottom:1px solid var(--line);white-space:nowrap}
-th{color:var(--muted);font-weight:600}
-tbody tr{cursor:pointer}tbody tr:hover{background:var(--soft)}
-.tag{font-weight:700}.p0{color:var(--urgent)}.p1{color:var(--high)}.p2{color:var(--normal)}.s3{color:var(--ok);font-weight:600}
-.note{color:var(--muted);font-size:.85rem;margin:8px 0 0;min-height:1.3em}
-ol.h{margin:0;padding-left:20px}ol.h li{margin:3px 0}
-#msg{position:fixed;left:0;right:0;bottom:0;background:var(--ink);color:var(--bg);padding:12px 20px;text-align:center;transform:translateY(100%);transition:transform .2s}
-#msg.on{transform:none}
-.map{margin:0;padding-left:18px;font-size:.88rem;color:var(--muted)}.map b{color:var(--ink)}
-footer{max-width:1180px;margin:auto;padding:0 20px 40px;color:var(--muted);font-size:.85rem}
-@media(max-width:860px){main{grid-template-columns:1fr}.bar,.bar.s{grid-template-columns:1fr}}
-@media(prefers-reduced-motion:reduce){#msg{transition:none}}
+th,td{text-align:left;padding:11px 14px;border-bottom:1px solid var(--line);white-space:nowrap}
+th{background:var(--paper);color:var(--muted);font-weight:700;font-size:.8rem}
+tbody tr{cursor:pointer}tbody tr:hover{background:rgba(15,157,142,.08)}tbody tr:last-child td{border-bottom:0}
+td:first-child{font-weight:700;font-variant-numeric:tabular-nums}
+.pill{display:inline-flex;align-items:center;gap:7px;padding:3px 11px;border-radius:99px;font-weight:700;font-size:.8rem;background:rgba(var(--r),.14);color:var(--c)}
+.pill:before{content:"";width:7px;height:7px;border-radius:50%;background:var(--c)}
+.p0{--c:#e5484d;--r:229,72,77}.p1{--c:#d97706;--r:217,119,6}.p2{--c:#3b82f6;--r:59,130,246}
+.s0{--c:#64748b;--r:100,116,139}.s1{--c:#8b5cf6;--r:139,92,246}.s2{--c:#0891b2;--r:8,145,178}.s3{--c:#12a36b;--r:18,163,107}
+.note{color:var(--muted);font-size:.88rem;margin:10px 0 0;min-height:1.3em}
+ol.h{margin:0;padding-left:20px}ol.h li{margin:6px 0}
+.map{margin:0;padding-left:18px;font-size:.9rem;color:var(--muted)}.map li{margin:5px 0}.map b{color:var(--ink)}
+#msg{position:fixed;left:50%;bottom:22px;transform:translate(-50%,160%);background:var(--navy);color:#fff;padding:13px 22px;border-radius:12px;box-shadow:0 18px 40px -10px rgba(0,0,0,.5);max-width:92vw;text-align:center;font-weight:600;transition:transform .25s;z-index:9}
+#msg.on{transform:translate(-50%,0)}
+footer{background:var(--navy);color:#8fa1c4;padding:26px 0;font-size:.88rem}
+@media(max-width:920px){main{grid-template-columns:1fr}.rail{position:static}.bar,.bar.s{grid-template-columns:1fr}}
+@media(max-width:700px){.lanes{grid-template-columns:1fr}.links{display:none}.hero{padding:44px 0 38px}}
+@media(prefers-reduced-motion:reduce){.lane{animation:none}#msg,html{transition:none;scroll-behavior:auto}}
+body:not(.dev) .devonly{display:none!important}
+body:not(.dev) .bar.s,.bar.t{grid-template-columns:1fr auto}
+.quick{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 12px}.quick button{flex:0 1 auto}
+.sw{display:flex;align-items:center;gap:9px;color:#b9c6e0;font-weight:600;font-size:.88rem;cursor:pointer}
+.sw input{appearance:none;-webkit-appearance:none;width:38px;height:22px;padding:0;border:0;border-radius:99px;background:rgba(255,255,255,.22);position:relative;cursor:pointer}
+.sw input:before{content:"";position:absolute;top:3px;left:3px;width:16px;height:16px;border-radius:50%;background:#fff;transition:left .15s}
+.sw input:checked{background:var(--brand)}.sw input:checked:before{left:19px}
 </style>
 </head>
 <body>
-<header>
-  <h1>CivicDesk</h1>
-  <p>Public Grievance Redressal System. File a complaint, watch it move through the queues, and see which data structure does each job.</p>
-  <div class="trays" id="trays" aria-live="polite"></div>
-</header>
+<nav class="nav"><div class="in"><a class="brand" href="#top"><svg width="26" height="26" viewBox="0 0 26 26" aria-hidden="true"><rect width="26" height="26" rx="7" fill="#c9a24b"/><path d="M7 13.5l4 4 8-9" fill="none" stroke="#0b1b3a" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>CivicDesk</a>
+<div class="links"><a href="#desk">File a complaint</a><a href="#list">Complaints</a><a href="#hist-card">Track</a><a class="devonly" href="#bench-card">Benchmark</a></div>
+<label class="sw"><input type="checkbox" id="dev" aria-label="Show data structure details"><span>Under the hood</span></label></div></nav>
+
+<header class="hero" id="top"><div class="in">
+<h1>Every complaint, tracked from filing to resolution.</h1>
+<p class="lead">CivicDesk sends each citizen complaint through priority queues, records every status change, and lets officers find and rank complaints in seconds.</p>
+<div class="cta"><a class="btn gold" href="#desk">File a complaint</a><a class="btn ghost" href="#list">Browse complaints</a></div>
+<div class="lanes" id="trays" aria-live="polite"></div>
+<p class="meta" id="meta"></p>
+</div></header>
 
 <main>
-<div class="rail">
+<div class="rail" id="desk">
   <section class="card">
-    <h2>File a complaint</h2>
+    <h2>File a complaint</h2><p class="sub">It joins the waiting line for its priority.</p>
     <label for="nm">Citizen name</label><input id="nm" autocomplete="off">
     <label for="ar">Area</label><input id="ar" autocomplete="off">
     <label for="dp">Department</label><select id="dp"></select>
@@ -68,38 +102,39 @@ footer{max-width:1180px;margin:auto;padding:0 20px 40px;color:var(--muted);font-
   </section>
 
   <section class="card">
-    <h2>Officer desk</h2>
+    <h2>Officer desk</h2><p class="sub">Urgent complaints are always served first.</p>
     <div class="row" style="margin-top:0"><button id="bNext">Process next complaint</button></div>
     <label for="cid">Complaint ID (click a row to fill it)</label><input id="cid" inputmode="numeric" autocomplete="off">
     <label for="to">Move to</label>
     <select id="to"><option value="2">In Progress</option><option value="3">Resolved</option></select>
     <label for="rm">Remarks (optional)</label><input id="rm" autocomplete="off">
-    <div class="row"><button id="bUpd">Update status</button><button id="bUndo" class="alt">Undo last update</button><button id="bHist" class="alt">View history</button></div>
+    <div class="row"><button id="bUpd">Update status</button><button id="bUndo" class="alt">Undo last update</button></div>
   </section>
 
-  <section class="card">
-    <h2>Where each structure is used</h2>
+  <section class="card devonly">
+    <h2>Behind the screen</h2><p class="sub">The data structure doing each job.</p>
     <ul class="map">
       <li><b>Queue:</b> three waiting lines, one per priority</li>
-      <li><b>Linked list:</b> status trail of each complaint</li>
+      <li><b>Linked list:</b> the status trail of each complaint</li>
       <li><b>Stack:</b> undo of status updates</li>
       <li><b>BST:</b> lookup by complaint ID</li>
       <li><b>Searching:</b> BST, binary and linear search</li>
-      <li><b>Sorting:</b> bubble, selection, insertion, merge, quick</li>
+      <li><b>Sorting:</b> bubble, selection, insertion, merge and quick sort</li>
     </ul>
   </section>
 </div>
 
-<div class="rail">
-  <section class="card">
-    <h2>Complaints</h2>
+<div class="col">
+  <section class="card" id="list">
+    <h2>Complaints</h2><p class="sub">Click any row to select it for an update.</p>
     <div class="bar s">
-      <div><label for="sm">Search by</label>
+      <div class="devonly"><label for="sm">Search by</label>
         <select id="sm"><option value="bst">ID (BST search)</option><option value="bin">ID (binary search)</option><option value="name">Name (linear search)</option><option value="area">Area (linear search)</option></select></div>
-      <div><label for="q">Search text</label><input id="q" autocomplete="off"></div>
+      <div><label for="q">Find a complaint</label><input id="q" autocomplete="off" placeholder="ID, name or area"></div>
       <button id="bSearch">Search</button>
     </div>
-    <div class="bar">
+    <div class="quick"><button id="bOld" class="alt">Oldest first</button><button id="bUrg" class="alt">Most urgent first</button><button id="bArea" class="alt">By area</button></div>
+    <div class="bar devonly">
       <div><label for="sk">Sort by</label><select id="sk"></select></div>
       <div><label for="sa">Algorithm</label><select id="sa"></select></div>
       <button id="bSort">Sort</button>
@@ -112,21 +147,21 @@ footer{max-width:1180px;margin:auto;padding:0 20px 40px;color:var(--muted);font-
     <div class="row"><button id="bAll" class="alt">Show all complaints</button></div>
   </section>
 
-  <section class="card">
-    <h2>Status history</h2>
-    <div id="hist"><p class="note">Enter a complaint ID and choose View history.</p></div>
+  <section class="card" id="hist-card">
+    <h2>Track a complaint</h2><p class="sub">Enter the ID you received when you filed it.</p>
+    <div class="bar t"><div><label for="tid">Complaint ID</label><input id="tid" inputmode="numeric" autocomplete="off"></div><button id="bTrack">Track</button></div>
+    <div id="hist"></div>
   </section>
 
-  <section class="card">
-    <h2>Benchmark</h2>
-    <p class="note" style="margin-top:0">Times all five sorts and all three searches on random data in your browser.</p>
-    <div class="row"><button id="bBench">Run benchmark</button></div>
-    <div id="bench" class="wrap"></div>
+  <section class="card devonly" id="bench-card">
+    <h2>Benchmark</h2><p class="sub">Times all five sorts and all three searches on random data in your browser.</p>
+    <div class="row" style="margin-top:0"><button id="bBench">Run benchmark</button></div>
+    <div id="bench" class="wrap" style="border:0"></div>
   </section>
 </div>
 </main>
 
-<footer>This page is a JavaScript version of the CivicDesk C project. Data lives only in this browser tab and resets when you refresh.</footer>
+<footer><div class="in">This page is a JavaScript version of the CivicDesk C project. Data lives only in this browser tab and resets when you refresh.</div></footer>
 <div id="msg" role="status"></div>
 
 <script>
@@ -316,10 +351,16 @@ for (const [id, nm, ar, dp, pr, ago, steps] of SAMPLE) {
 let view = { list: null, note: "" }, toastTimer;
 function toast(t) { const m = $("msg"); m.textContent = t; m.classList.add("on"); clearTimeout(toastTimer); toastTimer = setTimeout(() => m.classList.remove("on"), 3500); }
 function render() {
-  $("trays").innerHTML = PRI.map((p, i) => `<div class="tray t${i}"><b>${sys.pq.qs[i].size}</b><span>${p} complaints waiting</span></div>`).join("");
+  $("trays").innerHTML = PRI.map((p, i) => {
+    const q = sys.pq.qs[i]; let chips = "", k = 0;
+    for (let n = q.front; n && k < 6; n = n.next, k++) chips += `<span class="chip${k === 0 ? " head" : ""}">${n.x.id}</span>`;
+    if (q.size > 6) chips += `<span class="more">+${q.size - 6} more</span>`;
+    return `<div class="lane l${i}"><div class="lh"><b>${q.size}</b><span>${p}</span></div><div class="chips">${chips || '<span class="more">Nobody waiting</span>'}</div></div>`;
+  }).join("");
+  $("meta").textContent = `${sys.all.length} complaints on file, ${sys.all.filter(c => c.status === 3).length} resolved. The gold ID in each lane is next in line.`;
   const list = view.list || sys.all;
   $("rows").innerHTML = list.length ? list.map(c => `<tr data-id="${c.id}"><td>${c.id}</td><td>${esc(c.name)}</td><td>${esc(c.area)}</td><td>${esc(c.dept)}</td>
-    <td class="tag p${c.pri}">${PRI[c.pri]}</td><td class="${c.status === 3 ? "s3" : ""}">${ST[c.status]}</td><td>${c.pending()} days</td></tr>`).join("")
+    <td><span class="pill p${c.pri}">${PRI[c.pri]}</span></td><td><span class="pill s${c.status}">${ST[c.status]}</span></td><td>${c.pending()} days</td></tr>`).join("")
     : `<tr><td colspan="7">No complaints found.</td></tr>`;
   $("note").textContent = view.note || `${list.length} complaints, in the order they were filed.`;
 }
@@ -332,7 +373,7 @@ function fileComplaint() {
   if (!name || !area) return toast("Enter the citizen name and the area.");
   let id; do id = 1000 + Math.floor(Math.random() * 9000); while (sys.bst.search(id));   // random IDs keep the BST balanced
   add(new Complaint(id, name, area, $("dp").value, +$("pr").value, TODAY));
-  $("nm").value = $("ar").value = ""; $("cid").value = id;
+  $("nm").value = $("ar").value = ""; $("cid").value = $("tid").value = id;
   show(null, ""); toast(`Complaint filed. Your complaint ID is ${id}.`);
 }
 function processNext() {
@@ -359,13 +400,13 @@ function undoLast() {
   show(view.list, view.note); toast(`Undone for complaint ${r.id}: back to ${ST[r.prev]}.`);
 }
 function history() {
-  const c = findC();
+  const id = parseInt($("tid").value.trim(), 10), c = Number.isNaN(id) ? null : sys.bst.search(id);
   if (!c) return toast("Complaint not found. Enter a valid ID.");
   $("hist").innerHTML = `<p class="note" style="margin-top:0">Complaint ${c.id} for ${esc(c.name)}, ${esc(c.dept)}, ${esc(c.area)}</p><ol class="h">` +
     c.history.toArray().map(n => `<li><b>${ST[n.status]}</b> on ${fmt(n.day)}${n.remarks ? ", " + esc(n.remarks) : ""}</li>`).join("") + "</ol>";
 }
 function search() {
-  const mode = $("sm").value, q = $("q").value.trim();
+  const dev = document.body.classList.contains("dev"), q = $("q").value.trim(), mode = dev ? $("sm").value : (/^\d+$/.test(q) ? "bst" : "any");
   if (!q) return toast("Enter something to search for.");
   let list, how;
   if (mode === "bst" || mode === "bin") {
@@ -375,14 +416,15 @@ function search() {
     list = c ? [c] : []; how = mode === "bst" ? "BST search" : "Binary search on the sorted list";
   } else {
     const t = q.toLowerCase(), f = mode === "name" ? "name" : "area";
-    list = linearSearch(sys.all, c => c[f].toLowerCase().includes(t)); how = "Linear search";
+    list = linearSearch(sys.all, c => mode === "any" ? (c.name + " " + c.area).toLowerCase().includes(t) : c[f].toLowerCase().includes(t)); how = "Linear search";
   }
-  show(list, `${how} for "${q}": ${list.length} found.`);
+  show(list, dev ? `${how} for "${q}": ${list.length} found.` : `${list.length} found for "${q}".`);
 }
 function sortReport() {
   const key = $("sk").value, algo = $("sa").value, t0 = performance.now();
   const out = SORTS[algo](sys.all, KEYS[key]), ms = performance.now() - t0;
-  show(out, `Sorted by ${key} using ${algo} in ${ms.toFixed(3)} ms.`);
+  const nice = { "Pending days (longest first)": "oldest complaints first", "Priority": "most urgent first", "Area (A-Z)": "by area", "Complaint ID": "by complaint ID" }[key];
+  show(out, document.body.classList.contains("dev") ? `Sorted by ${key} using ${algo} in ${ms.toFixed(3)} ms.` : `Sorted: ${nice}.`);
 }
 
 /* ---------- benchmark ---------- */
@@ -421,10 +463,17 @@ Object.keys(KEYS).forEach(k => $("sk").add(new Option(k)));
 Object.keys(SORTS).forEach(k => $("sa").add(new Option(k)));
 $("pr").value = 2;
 $("bFile").onclick = fileComplaint; $("bNext").onclick = processNext; $("bUpd").onclick = updateStatus;
-$("bUndo").onclick = undoLast; $("bHist").onclick = history; $("bSearch").onclick = search;
+$("bUndo").onclick = undoLast; $("bTrack").onclick = history;
+$("tid").addEventListener("keydown", e => { if (e.key === "Enter") history(); });
+const quickBy = key => () => { $("sk").value = key; $("sa").value = "Quick Sort"; sortReport(); };
+$("bOld").onclick = quickBy("Pending days (longest first)"); $("bUrg").onclick = quickBy("Priority"); $("bArea").onclick = quickBy("Area (A-Z)");
+$("dev").onchange = () => {
+  document.body.classList.toggle("dev", $("dev").checked); show(view.list, "");
+  toast($("dev").checked ? "Under the hood is on: algorithm pickers, timings and the benchmark are visible." : "Under the hood is off.");
+}; $("bSearch").onclick = search;
 $("bSort").onclick = sortReport; $("bAll").onclick = () => show(null, ""); $("bBench").onclick = benchmark;
 $("q").addEventListener("keydown", e => { if (e.key === "Enter") search(); });
-$("rows").addEventListener("click", e => { const tr = e.target.closest("tr[data-id]"); if (tr) $("cid").value = tr.dataset.id; });
+$("rows").addEventListener("click", e => { const tr = e.target.closest("tr[data-id]"); if (tr) $("cid").value = $("tid").value = tr.dataset.id; });
 render();
 </script>
 </body>
