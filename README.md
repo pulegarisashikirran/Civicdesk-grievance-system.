@@ -2,7 +2,7 @@
 
 CivicDesk is a menu-driven complaint-management application and data-structures project written in **C**. Citizens' complaints are registered, prioritised through three linked-list queues, tracked through a per-complaint status history, indexed in a binary search tree, and reported with classical searching and sorting algorithms. Every status change can be reversed with an undo stack. All names, areas and complaints in the sample data are fictional, and nothing is sent to any real government system.
 
-Live demo: https://pulegarisashikirran.github.io/civicdesk-grievance-system/\n
+Live demo: https://pulegarisashikirran.github.io/civicdesk-grievance-system/ \n
 Repository: https://github.com/pulegarisashikirran/civicdesk-grievance-system
 
 ## What is implemented
