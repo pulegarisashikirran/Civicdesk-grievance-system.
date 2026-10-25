@@ -2,8 +2,11 @@
 
 CivicDesk is a menu-driven complaint-management application and data-structures project written in **C**. Citizens' complaints are registered, prioritised through three linked-list queues, tracked through a per-complaint status history, indexed in a binary search tree, and reported with classical searching and sorting algorithms. Every status change can be reversed with an undo stack. All names, areas and complaints in the sample data are fictional, and nothing is sent to any real government system.
 
-Live demo: https://pulegarisashikirran.github.io/civicdesk-grievance-system/ 
 Repository: https://github.com/pulegarisashikirran/civicdesk-grievance-system
+
+Live demo: https://pulegarisashikirran.github.io/civicdesk-grievance-system/
+
+The live demo is a JavaScript version of the same logic, made for easy demonstration in a browser. The C program in this repository is the main project.
 
 ## What is implemented
 
@@ -18,7 +21,7 @@ Repository: https://github.com/pulegarisashikirran/civicdesk-grievance-system
 * A benchmark that times all five sorts and all three search methods on the same random data.
 * Pending-day calculation that stops counting once a complaint is resolved.
 * 12 pre-loaded sample complaints (some already in progress or resolved) so every feature can be demonstrated immediately.
-* 19 automated unit tests covering the data structures, algorithms and system rules.
+* 23 automated unit tests covering the data structures, algorithms and system rules.
 * Complete memory clean-up on exit: every node and complaint is freed (checked with AddressSanitizer).
 
 ## Data Structures & Algorithms — Topics Used, Locations & Logic
@@ -282,8 +285,9 @@ bst.h/.c              Binary Search Tree of complaints keyed by ID
 search_sort.h/.c      linear_search, binary_search, five sorts, comparators, benchmarks
 sample_data.h/.c      12 sample complaints and a random complaint generator for benchmarks
 util.h/.c             Safe allocation, string helpers, date conversion
-test_civicdesk.c      19 automated tests for the structures, algorithms and system rules
+test_civicdesk.c      23 automated tests for the structures, algorithms and system rules
 Makefile              Builds civicdesk and test_civicdesk
+index.html            Web demo (JavaScript version of the same logic, hosted on GitHub Pages)
 README.md             This document
 LICENSE               MIT License
 ```
@@ -303,7 +307,7 @@ The requested direction is a complaint-management project built only on the topi
 
 **Implemented in this version:** complaint registration; three-level priority queues; status history with linked lists; undo with a stack; BST index; BST, binary and linear search; five sorting algorithms with timing; benchmark; sample data; automated tests; full memory clean-up.
 
-**Verified:** the 19 tests in `test_civicdesk.c` pass, including under AddressSanitizer and UndefinedBehaviorSanitizer with no errors or memory leaks. They check that every sorting algorithm produces the same order as a reference sort on arrays of 0, 1, 2, 50 and 400 items for every sort field, that quick sort handles sorted and reversed input, that merge sort is stable, that BST search and binary search agree for every complaint, that queues serve Urgent before High before Normal and keep first-in-first-out order inside a level, that undo restores earlier statuses in reverse order and never removes "Filed", that duplicate IDs are rejected, and that the system grows past its initial capacity. A full pass through every menu option was also run, including invalid input and end-of-input handling.
+**Verified:** the 23 tests in `test_civicdesk.c` pass, including under AddressSanitizer and UndefinedBehaviorSanitizer with no errors or memory leaks. They check that every sorting algorithm produces the same order as a reference sort on arrays of 0, 1, 2, 50 and 400 items for every sort field, that quick sort handles sorted and reversed input, that merge sort is stable, that BST search and binary search agree for every complaint, that queues serve Urgent before High before Normal and keep first-in-first-out order inside a level, that undo restores earlier statuses in reverse order and never removes "Filed", that duplicate IDs are rejected, that the system grows past its initial capacity, and that an empty system, an empty tree, the queue counts and the history dates after an undo behave correctly. A full pass through every menu option was also run, including invalid input and end-of-input handling.
 
 **Still pending / sensible next steps:** persistence to a file, a self-balancing tree, a graphical or web interface, and more tests for the menu input handling.
 
