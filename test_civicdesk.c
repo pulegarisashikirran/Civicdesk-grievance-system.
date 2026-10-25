@@ -389,6 +389,79 @@ static int test_system_grows_beyond_initial_capacity(void)
     return failed_here;
 }
 
+/* ------------------------------------------------ extra tests: empty cases and consistency */
+
+static int test_empty_system_starts_clean(void)
+{
+    GrievanceSystem sys;
+    int failed_here = 0;
+
+    system_init(&sys);
+
+    CHECK(sys.count == 0);
+    CHECK(sys.bst.size == 0);
+    CHECK(pqm_total(&sys.queues) == 0);
+    CHECK(undo_is_empty(&sys.undo));
+
+    system_free(&sys);
+    return failed_here;
+}
+
+static int test_empty_bst_search_and_traversal(void)
+{
+    ComplaintBST tree;
+    Complaint **items;
+    int failed_here = 0, n = -1;
+
+    bst_init(&tree);
+
+    CHECK(bst_search(&tree, 1234) == NULL);
+    CHECK(bst_height(&tree) == 0);
+
+    items = bst_inorder(&tree, &n);
+    CHECK(n == 0);
+
+    free(items);
+    bst_free(&tree);
+    return failed_here;
+}
+
+static int test_priority_queue_counts_are_consistent(void)
+{
+    GrievanceSystem sys;
+    int failed_here = 0, p, total = 0;
+
+    load_into(&sys);
+
+    for (p = 0; p < PRIORITY_COUNT; p++)
+        total += pqm_count(&sys.queues, (Priority)p);
+
+    CHECK(total == pqm_total(&sys.queues));
+    CHECK(total == 9);
+
+    system_free(&sys);
+    return failed_here;
+}
+
+static int test_history_last_day_after_removal(void)
+{
+    StatusHistory h;
+    int failed_here = 0;
+
+    history_init(&h);
+    history_append(&h, STATUS_FILED, "", 100);
+    history_append(&h, STATUS_ASSIGNED, "", 101);
+    history_append(&h, STATUS_IN_PROGRESS, "", 102);
+
+    CHECK(history_last_day(&h) == 102);
+    CHECK(history_remove_last(&h) == 1);
+    CHECK(history_last_day(&h) == 101);
+    CHECK(history_last_status(&h) == STATUS_ASSIGNED);
+
+    history_free(&h);
+    return failed_here;
+}
+
 int main(void)
 {
     printf("CivicDesk tests\n");
@@ -411,6 +484,11 @@ int main(void)
     RUN(test_duplicate_complaint_is_rejected_by_the_system);
     RUN(test_generated_ids_are_unused);
     RUN(test_system_grows_beyond_initial_capacity);
+
+    RUN(test_empty_system_starts_clean);
+    RUN(test_empty_bst_search_and_traversal);
+    RUN(test_priority_queue_counts_are_consistent);
+    RUN(test_history_last_day_after_removal);
 
     printf("\n%d tests run, %d failed.\n", tests_run, tests_failed);
     return tests_failed == 0 ? 0 : 1;
