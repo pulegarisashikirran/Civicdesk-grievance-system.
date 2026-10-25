@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CivicDesk: Public Grievance Redressal System</title>
+<style>
+:root{--bg:#eef2f6;--card:#fff;--ink:#10243e;--muted:#566579;--line:#d5dde7;--brand:#0f766e;--brand-ink:#fff;--soft:#e3f1ef;--urgent:#b42318;--high:#a16207;--normal:#1d4ed8;--ok:#15803d}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0d1620;--card:#152230;--ink:#e8eef5;--muted:#9bacbe;--line:#27384a;--brand:#2dd4bf;--brand-ink:#06201d;--soft:#12332f;--urgent:#ff8a7a;--high:#f5c04a;--normal:#8db2ff;--ok:#6ee7a0}}
+:root[data-theme="dark"]{--bg:#0d1620;--card:#152230;--ink:#e8eef5;--muted:#9bacbe;--line:#27384a;--brand:#2dd4bf;--brand-ink:#06201d;--soft:#12332f;--urgent:#ff8a7a;--high:#f5c04a;--normal:#8db2ff;--ok:#6ee7a0}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+header{padding:28px 20px 18px;max-width:1180px;margin:auto}
+h1{font:700 2.1rem/1.1 Georgia,"Times New Roman",serif;margin:0 0 4px;letter-spacing:-.01em}
+header p{margin:0;color:var(--muted);max-width:60ch}
+h2{font:700 1.05rem/1.2 Georgia,serif;margin:0 0 12px}
+.trays{display:flex;gap:12px;margin-top:18px;flex-wrap:wrap}
+.tray{flex:1 1 150px;background:var(--card);border:1px solid var(--line);border-left-width:6px;border-radius:6px;padding:10px 14px}
+.tray b{display:block;font:700 2rem/1 Georgia,serif}
+.tray span{color:var(--muted);font-size:.85rem}
+.t0{border-left-color:var(--urgent)}.t1{border-left-color:var(--high)}.t2{border-left-color:var(--normal)}
+main{max-width:1180px;margin:auto;padding:0 20px 90px;display:grid;grid-template-columns:330px 1fr;gap:18px;align-items:start}
+.rail{display:grid;gap:18px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:6px;padding:16px}
+label{display:block;font-size:.85rem;color:var(--muted);margin:10px 0 3px}
+input,select{width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:4px;background:var(--bg);color:var(--ink);font:inherit}
+button{font:inherit;font-weight:600;padding:8px 14px;border-radius:4px;border:1px solid var(--brand);background:var(--brand);color:var(--brand-ink);cursor:pointer}
+button.alt{background:transparent;color:var(--brand)}
+button:hover{filter:brightness(1.08)}
+:focus-visible{outline:3px solid var(--normal);outline-offset:2px}
+.row{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.row>*{flex:1 1 auto}
+.bar{display:grid;grid-template-columns:1fr 1fr auto;gap:8px;align-items:end;margin-bottom:10px}
+.bar.s{grid-template-columns:200px 1fr auto}
+.bar label{margin-top:0}
+.wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:.9rem}
+th,td{text-align:left;padding:7px 8px;border-bottom:1px solid var(--line);white-space:nowrap}
+th{color:var(--muted);font-weight:600}
+tbody tr{cursor:pointer}tbody tr:hover{background:var(--soft)}
+.tag{font-weight:700}.p0{color:var(--urgent)}.p1{color:var(--high)}.p2{color:var(--normal)}.s3{color:var(--ok);font-weight:600}
+.note{color:var(--muted);font-size:.85rem;margin:8px 0 0;min-height:1.3em}
+ol.h{margin:0;padding-left:20px}ol.h li{margin:3px 0}
+#msg{position:fixed;left:0;right:0;bottom:0;background:var(--ink);color:var(--bg);padding:12px 20px;text-align:center;transform:translateY(100%);transition:transform .2s}
+#msg.on{transform:none}
+.map{margin:0;padding-left:18px;font-size:.88rem;color:var(--muted)}.map b{color:var(--ink)}
+footer{max-width:1180px;margin:auto;padding:0 20px 40px;color:var(--muted);font-size:.85rem}
+@media(max-width:860px){main{grid-template-columns:1fr}.bar,.bar.s{grid-template-columns:1fr}}
+@media(prefers-reduced-motion:reduce){#msg{transition:none}}
+</style>
+</head>
+<body>
+<header>
+  <h1>CivicDesk</h1>
+  <p>Public Grievance Redressal System. File a complaint, watch it move through the queues, and see which data structure does each job.</p>
+  <div class="trays" id="trays" aria-live="polite"></div>
+</header>
+
+<main>
+<div class="rail">
+  <section class="card">
+    <h2>File a complaint</h2>
+    <label for="nm">Citizen name</label><input id="nm" autocomplete="off">
+    <label for="ar">Area</label><input id="ar" autocomplete="off">
+    <label for="dp">Department</label><select id="dp"></select>
+    <label for="pr">Priority</label><select id="pr"></select>
+    <div class="row"><button id="bFile">File complaint</button></div>
+  </section>
+
+  <section class="card">
+    <h2>Officer desk</h2>
+    <div class="row" style="margin-top:0"><button id="bNext">Process next complaint</button></div>
+    <label for="cid">Complaint ID (click a row to fill it)</label><input id="cid" inputmode="numeric" autocomplete="off">
+    <label for="to">Move to</label>
+    <select id="to"><option value="2">In Progress</option><option value="3">Resolved</option></select>
+    <label for="rm">Remarks (optional)</label><input id="rm" autocomplete="off">
+    <div class="row"><button id="bUpd">Update status</button><button id="bUndo" class="alt">Undo last update</button><button id="bHist" class="alt">View history</button></div>
+  </section>
+
+  <section class="card">
+    <h2>Where each structure is used</h2>
+    <ul class="map">
+      <li><b>Queue:</b> three waiting lines, one per priority</li>
+      <li><b>Linked list:</b> status trail of each complaint</li>
+      <li><b>Stack:</b> undo of status updates</li>
+      <li><b>BST:</b> lookup by complaint ID</li>
+      <li><b>Searching:</b> BST, binary and linear search</li>
+      <li><b>Sorting:</b> bubble, selection, insertion, merge, quick</li>
+    </ul>
+  </section>
+</div>
+
+<div class="rail">
+  <section class="card">
+    <h2>Complaints</h2>
+    <div class="bar s">
+      <div><label for="sm">Search by</label>
+        <select id="sm"><option value="bst">ID (BST search)</option><option value="bin">ID (binary search)</option><option value="name">Name (linear search)</option><option value="area">Area (linear search)</option></select></div>
+      <div><label for="q">Search text</label><input id="q" autocomplete="off"></div>
+      <button id="bSearch">Search</button>
+    </div>
+    <div class="bar">
+      <div><label for="sk">Sort by</label><select id="sk"></select></div>
+      <div><label for="sa">Algorithm</label><select id="sa"></select></div>
+      <button id="bSort">Sort</button>
+    </div>
+    <div class="wrap"><table>
+      <thead><tr><th>ID</th><th>Name</th><th>Area</th><th>Department</th><th>Priority</th><th>Status</th><th>Pending</th></tr></thead>
+      <tbody id="rows"></tbody>
+    </table></div>
+    <p class="note" id="note"></p>
+    <div class="row"><button id="bAll" class="alt">Show all complaints</button></div>
+  </section>
+
+  <section class="card">
+    <h2>Status history</h2>
+    <div id="hist"><p class="note">Enter a complaint ID and choose View history.</p></div>
+  </section>
+
+  <section class="card">
+    <h2>Benchmark</h2>
+    <p class="note" style="margin-top:0">Times all five sorts and all three searches on random data in your browser.</p>
+    <div class="row"><button id="bBench">Run benchmark</button></div>
+    <div id="bench" class="wrap"></div>
+  </section>
+</div>
+</main>
+
+<footer>This page is a JavaScript version of the CivicDesk C project. Data lives only in this browser tab and resets when you refresh.</footer>
+<div id="msg" role="status"></div>
+
+<script>
+"use strict";
+const PRI = ["Urgent", "High", "Normal"];
+const ST = ["Filed", "Assigned", "In Progress", "Resolved"];
+const DEPTS = ["Water Supply", "Electricity", "Roads", "Sanitation", "Street Lights"];
+const DAY = 864e5, TODAY = Math.floor(Date.now() / DAY);
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const fmt = d => new Date(d * DAY).toISOString().slice(0, 10);
+
+/* ---------- singly linked list: status history of one complaint ---------- */
+class SNode { constructor(s, r, d) { this.status = s; this.remarks = r; this.day = d; this.next = null; } }
+class StatusList {
+  constructor() { this.head = this.tail = null; this.size = 0; }
+  append(s, r, d) {                         // O(1) thanks to the tail pointer
+    const n = new SNode(s, r, d);
+    if (!this.head) this.head = this.tail = n; else { this.tail.next = n; this.tail = n; }
+    this.size++;
+  }
+  removeLast() {                            // used by undo; "Filed" is never removed
+    if (this.size <= 1) return false;
+    let c = this.head;
+    while (c.next !== this.tail) c = c.next;
+    c.next = null; this.tail = c; this.size--;
+    return true;
+  }
+  toArray() { const a = []; for (let n = this.head; n; n = n.next) a.push(n); return a; }
+}
+
+class Complaint {
+  constructor(id, name, area, dept, pri, filed) {
+    Object.assign(this, { id, name, area, dept, pri, filed });
+    this.history = new StatusList();
+    this.history.append(0, "Complaint registered", filed);
+  }
+  get status() { return this.history.tail.status; }
+  pending() { return (this.status === 3 ? this.history.tail.day : TODAY) - this.filed; }
+}
+
+/* ---------- queue (linked list) and three-level priority manager ---------- */
+class LinkedQueue {
+  constructor() { this.front = this.rear = null; this.size = 0; }
+  enqueue(x) { const n = { x, next: null }; if (this.rear) this.rear.next = n; else this.front = n; this.rear = n; this.size++; }
+  dequeue() {
+    if (!this.front) return null;
+    const n = this.front; this.front = n.next; if (!this.front) this.rear = null; this.size--;
+    return n.x;
+  }
+}
+class PriorityQueues {
+  constructor() { this.qs = [new LinkedQueue(), new LinkedQueue(), new LinkedQueue()]; }
+  enqueue(c) { this.qs[c.pri].enqueue(c); }
+  next() { for (const q of this.qs) if (q.size) return q.dequeue(); return null; }   // Urgent, High, Normal
+}
+
+/* ---------- stack (linked list) ---------- */
+class UndoStack {
+  constructor() { this.top = null; this.size = 0; }
+  push(r) { this.top = { r, next: this.top }; this.size++; }
+  pop() { if (!this.top) return null; const r = this.top.r; this.top = this.top.next; this.size--; return r; }
+}
+
+/* ---------- binary search tree keyed by complaint ID ---------- */
+class BST {
+  constructor() { this.root = null; this.size = 0; }
+  insert(c) {
+    const node = { c, left: null, right: null };
+    if (!this.root) { this.root = node; this.size++; return true; }
+    let cur = this.root;
+    for (;;) {
+      if (c.id === cur.c.id) return false;
+      const side = c.id < cur.c.id ? "left" : "right";
+      if (!cur[side]) { cur[side] = node; this.size++; return true; }
+      cur = cur[side];
+    }
+  }
+  search(id) {
+    let cur = this.root;
+    while (cur) { if (id === cur.c.id) return cur.c; cur = id < cur.c.id ? cur.left : cur.right; }
+    return null;
+  }
+  inorder() { const out = []; const go = n => { if (n) { go(n.left); out.push(n.c); go(n.right); } }; go(this.root); return out; }
+  height() { const h = n => n ? 1 + Math.max(h(n.left), h(n.right)) : 0; return h(this.root); }
+}
+
+/* ---------- searching ---------- */
+const linearSearch = (items, test) => { const out = []; for (const x of items) if (test(x)) out.push(x); return out; };
+function binarySearch(sorted, id) {
+  let lo = 0, hi = sorted.length - 1;
+  while (lo <= hi) {
+    const mid = (lo + hi) >> 1;
+    if (sorted[mid].id === id) return sorted[mid];
+    if (sorted[mid].id < id) lo = mid + 1; else hi = mid - 1;
+  }
+  return null;
+}
+
+/* ---------- five sorting algorithms (each returns a new sorted array) ---------- */
+function bubble(arr, c) {
+  const a = [...arr];
+  for (let i = 0; i < a.length - 1; i++) {
+    let swapped = false;
+    for (let j = 0; j < a.length - 1 - i; j++)
+      if (c(a[j], a[j + 1]) > 0) { [a[j], a[j + 1]] = [a[j + 1], a[j]]; swapped = true; }
+    if (!swapped) break;
+  }
+  return a;
+}
+function selection(arr, c) {
+  const a = [...arr];
+  for (let i = 0; i < a.length - 1; i++) {
+    let m = i;
+    for (let j = i + 1; j < a.length; j++) if (c(a[j], a[m]) < 0) m = j;
+    if (m !== i) [a[i], a[m]] = [a[m], a[i]];
+  }
+  return a;
+}
+function insertion(arr, c) {
+  const a = [...arr];
+  for (let i = 1; i < a.length; i++) {
+    const cur = a[i]; let j = i - 1;
+    while (j >= 0 && c(a[j], cur) > 0) { a[j + 1] = a[j]; j--; }
+    a[j + 1] = cur;
+  }
+  return a;
+}
+function merge(arr, c) {
+  if (arr.length < 2) return [...arr];
+  const mid = arr.length >> 1, L = merge(arr.slice(0, mid), c), R = merge(arr.slice(mid), c), out = [];
+  let i = 0, j = 0;
+  while (i < L.length && j < R.length) out.push(c(L[i], R[j]) <= 0 ? L[i++] : R[j++]);   // <= keeps it stable
+  return out.concat(L.slice(i), R.slice(j));
+}
+function quick(arr, c) {
+  const a = [...arr];
+  const part = (lo, hi) => {                // Hoare partition around the middle element
+    const p = a[lo + ((hi - lo) >> 1)]; let i = lo - 1, j = hi + 1;
+    for (;;) {
+      do i++; while (c(a[i], p) < 0);
+      do j--; while (c(a[j], p) > 0);
+      if (i >= j) return j;
+      [a[i], a[j]] = [a[j], a[i]];
+    }
+  };
+  const go = (lo, hi) => {                  // smaller side first keeps the stack depth O(log n)
+    while (lo < hi) {
+      const p = part(lo, hi);
+      if (p - lo < hi - p) { go(lo, p); lo = p + 1; } else { go(p + 1, hi); hi = p; }
+    }
+  };
+  go(0, a.length - 1);
+  return a;
+}
+const SORTS = { "Bubble Sort": bubble, "Selection Sort": selection, "Insertion Sort": insertion, "Merge Sort": merge, "Quick Sort": quick };
+const KEYS = {
+  "Pending days (longest first)": (a, b) => b.pending() - a.pending(),
+  "Area (A-Z)": (a, b) => a.area.toLowerCase().localeCompare(b.area.toLowerCase()),
+  "Complaint ID": (a, b) => a.id - b.id,
+  "Priority": (a, b) => a.pri - b.pri
+};
+
+/* ---------- the system: BST + queues + stack + list of all complaints ---------- */
+const sys = { bst: new BST(), pq: new PriorityQueues(), undo: new UndoStack(), all: [] };
+function add(c) {
+  if (!sys.bst.insert(c)) return false;     // duplicate IDs are rejected
+  sys.all.push(c);
+  if (c.status === 0) sys.pq.enqueue(c);    // only unprocessed complaints wait in a queue
+  return true;
+}
+const SAMPLE = [
+  [4821,"Ravi","Shadnagar","Water Supply",0,2,0],[1307,"Anita","Gachibowli","Electricity",1,5,0],
+  [7752,"Kiran","Madhapur","Roads",2,9,0],[2194,"Sneha","Kukatpally","Sanitation",2,1,0],
+  [9036,"Imran","Uppal","Water Supply",0,3,0],[5518,"Lakshmi","Secunderabad","Street Lights",2,12,0],
+  [3340,"Suresh","Banjara Hills","Electricity",1,7,0],[6671,"Priya","Miyapur","Roads",1,15,2],
+  [1889,"Arjun","Gachibowli","Sanitation",0,20,3],[8203,"Fatima","Uppal","Street Lights",2,10,1],
+  [4067,"Mahesh","Shadnagar","Water Supply",1,4,0],[7129,"Divya","Kukatpally","Electricity",2,6,0]
+];
+for (const [id, nm, ar, dp, pr, ago, steps] of SAMPLE) {
+  const c = new Complaint(id, nm, ar, dp, pr, TODAY - ago);
+  for (let s = 1; s <= steps; s++) c.history.append(s, "Sample data", c.filed + s);
+  add(c);
+}
+
+/* ---------- screen ---------- */
+let view = { list: null, note: "" }, toastTimer;
+function toast(t) { const m = $("msg"); m.textContent = t; m.classList.add("on"); clearTimeout(toastTimer); toastTimer = setTimeout(() => m.classList.remove("on"), 3500); }
+function render() {
+  $("trays").innerHTML = PRI.map((p, i) => `<div class="tray t${i}"><b>${sys.pq.qs[i].size}</b><span>${p} complaints waiting</span></div>`).join("");
+  const list = view.list || sys.all;
+  $("rows").innerHTML = list.length ? list.map(c => `<tr data-id="${c.id}"><td>${c.id}</td><td>${esc(c.name)}</td><td>${esc(c.area)}</td><td>${esc(c.dept)}</td>
+    <td class="tag p${c.pri}">${PRI[c.pri]}</td><td class="${c.status === 3 ? "s3" : ""}">${ST[c.status]}</td><td>${c.pending()} days</td></tr>`).join("")
+    : `<tr><td colspan="7">No complaints found.</td></tr>`;
+  $("note").textContent = view.note || `${list.length} complaints, in the order they were filed.`;
+}
+const show = (list, note) => { view = { list, note }; render(); };
+const getId = () => parseInt($("cid").value.trim(), 10);
+const findC = () => { const id = getId(); return Number.isNaN(id) ? null : sys.bst.search(id); };
+
+function fileComplaint() {
+  const name = $("nm").value.trim(), area = $("ar").value.trim();
+  if (!name || !area) return toast("Enter the citizen name and the area.");
+  let id; do id = 1000 + Math.floor(Math.random() * 9000); while (sys.bst.search(id));   // random IDs keep the BST balanced
+  add(new Complaint(id, name, area, $("dp").value, +$("pr").value, TODAY));
+  $("nm").value = $("ar").value = ""; $("cid").value = id;
+  show(null, ""); toast(`Complaint filed. Your complaint ID is ${id}.`);
+}
+function processNext() {
+  const c = sys.pq.next();
+  if (!c) return toast("No complaints are waiting in the queues.");
+  c.history.append(1, `Assigned to ${c.dept} department`, TODAY);
+  $("cid").value = c.id; show(null, ""); toast(`Now processing complaint ${c.id} (${PRI[c.pri]}).`);
+}
+function updateStatus() {
+  const c = findC();
+  if (!c) return toast("Complaint not found. Enter a valid ID.");
+  const cur = c.status, to = +$("to").value;
+  if (cur === 0) return toast("This complaint is still in a queue. Process it first.");
+  if (cur === 3) return toast("This complaint is already resolved.");
+  if (to <= cur) return toast(`It is already ${ST[cur]}. Pick a later status.`);
+  c.history.append(to, $("rm").value.trim(), TODAY);
+  sys.undo.push({ id: c.id, prev: cur, now: to });
+  $("rm").value = ""; show(view.list, view.note); toast(`Status updated: ${ST[cur]} to ${ST[to]}.`);
+}
+function undoLast() {
+  const r = sys.undo.pop();
+  if (!r) return toast("Nothing to undo.");
+  sys.bst.search(r.id).history.removeLast();
+  show(view.list, view.note); toast(`Undone for complaint ${r.id}: back to ${ST[r.prev]}.`);
+}
+function history() {
+  const c = findC();
+  if (!c) return toast("Complaint not found. Enter a valid ID.");
+  $("hist").innerHTML = `<p class="note" style="margin-top:0">Complaint ${c.id} for ${esc(c.name)}, ${esc(c.dept)}, ${esc(c.area)}</p><ol class="h">` +
+    c.history.toArray().map(n => `<li><b>${ST[n.status]}</b> on ${fmt(n.day)}${n.remarks ? ", " + esc(n.remarks) : ""}</li>`).join("") + "</ol>";
+}
+function search() {
+  const mode = $("sm").value, q = $("q").value.trim();
+  if (!q) return toast("Enter something to search for.");
+  let list, how;
+  if (mode === "bst" || mode === "bin") {
+    const id = parseInt(q, 10);
+    if (Number.isNaN(id)) return toast("Complaint IDs are numbers.");
+    const c = mode === "bst" ? sys.bst.search(id) : binarySearch(sys.bst.inorder(), id);
+    list = c ? [c] : []; how = mode === "bst" ? "BST search" : "Binary search on the sorted list";
+  } else {
+    const t = q.toLowerCase(), f = mode === "name" ? "name" : "area";
+    list = linearSearch(sys.all, c => c[f].toLowerCase().includes(t)); how = "Linear search";
+  }
+  show(list, `${how} for "${q}": ${list.length} found.`);
+}
+function sortReport() {
+  const key = $("sk").value, algo = $("sa").value, t0 = performance.now();
+  const out = SORTS[algo](sys.all, KEYS[key]), ms = performance.now() - t0;
+  show(out, `Sorted by ${key} using ${algo} in ${ms.toFixed(3)} ms.`);
+}
+
+/* ---------- benchmark ---------- */
+function rng(seed) { let s = seed >>> 0 || 1; return () => (s = (s * 1664525 + 1013904223) >>> 0) / 4294967296; }
+function randomComplaints(n, seed) {
+  const r = rng(seed), ids = new Set(), out = [];
+  while (ids.size < n) ids.add(1000 + Math.floor(r() * 99000));
+  for (const id of ids) out.push(new Complaint(id, "Citizen", "Area " + Math.floor(r() * 8), DEPTS[Math.floor(r() * 5)], Math.floor(r() * 3), TODAY - Math.floor(r() * 61)));
+  return out;
+}
+const timeit = f => { const t = performance.now(); f(); return performance.now() - t; };
+function benchmark() {
+  $("bench").innerHTML = "<p class=note>Running...</p>";
+  setTimeout(() => {
+    const cmp = (a, b) => a.pending() - b.pending();
+    let html = "<table><thead><tr><th>n</th>" + Object.keys(SORTS).map(k => `<th>${k}</th>`).join("") + "</tr></thead><tbody>";
+    for (const n of [500, 1000, 2000]) {
+      const data = randomComplaints(n, 42);
+      html += `<tr><td>${n}</td>` + Object.values(SORTS).map(f => `<td>${timeit(() => f(data, cmp)).toFixed(2)} ms</td>`).join("") + "</tr>";
+    }
+    const n = 5000, data = randomComplaints(n, 7), byId = [...data].sort((a, b) => a.id - b.id), tree = new BST();
+    for (const c of data) tree.insert(c);
+    const ids = Array.from({ length: 200 }, (_, i) => data[(i * 37) % n].id);
+    const lin = timeit(() => ids.forEach(id => linearSearch(data, c => c.id === id)));
+    const bin = timeit(() => ids.forEach(id => binarySearch(byId, id)));
+    const bst = timeit(() => ids.forEach(id => tree.search(id)));
+    html += `</tbody></table><p class="note">Searching: 200 lookups in ${n} complaints (BST height ${tree.height()}). Linear search ${lin.toFixed(2)} ms, binary search ${bin.toFixed(2)} ms, BST search ${bst.toFixed(2)} ms.</p>`;
+    $("bench").innerHTML = html;
+  }, 30);
+}
+
+/* ---------- wiring ---------- */
+DEPTS.forEach(d => $("dp").add(new Option(d)));
+PRI.forEach((p, i) => $("pr").add(new Option(p, i)));
+Object.keys(KEYS).forEach(k => $("sk").add(new Option(k)));
+Object.keys(SORTS).forEach(k => $("sa").add(new Option(k)));
+$("pr").value = 2;
+$("bFile").onclick = fileComplaint; $("bNext").onclick = processNext; $("bUpd").onclick = updateStatus;
+$("bUndo").onclick = undoLast; $("bHist").onclick = history; $("bSearch").onclick = search;
+$("bSort").onclick = sortReport; $("bAll").onclick = () => show(null, ""); $("bBench").onclick = benchmark;
+$("q").addEventListener("keydown", e => { if (e.key === "Enter") search(); });
+$("rows").addEventListener("click", e => { const tr = e.target.closest("tr[data-id]"); if (tr) $("cid").value = tr.dataset.id; });
+render();
+</script>
+</body>
+</html>
