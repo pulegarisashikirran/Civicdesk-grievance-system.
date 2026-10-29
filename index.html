@@ -111,6 +111,12 @@ body:not(.dev) .bar.s,.bar.t{grid-template-columns:1fr auto}
     <div class="row"><button id="bUpd">Update status</button><button id="bUndo" class="alt">Undo last update</button></div>
   </section>
 
+  <section class="card">
+    <h2>Data file</h2><p class="sub">Exchange complaints with the terminal program. Importing replaces what is on screen.</p>
+    <div class="row" style="margin-top:0"><button id="bExport">Export to file</button><button id="bImport" class="alt">Import from file</button></div>
+    <input id="fileIn" type="file" accept=".txt,text/plain" hidden>
+  </section>
+
   <section class="card devonly">
     <h2>Behind the screen</h2><p class="sub">The data structure doing each job.</p>
     <ul class="map">
@@ -161,7 +167,7 @@ body:not(.dev) .bar.s,.bar.t{grid-template-columns:1fr auto}
 </div>
 </main>
 
-<footer><div class="in">This page is a JavaScript version of the CivicDesk C project. Data lives only in this browser tab and resets when you refresh.</div></footer>
+<footer><div class="in">This page is a JavaScript version of the CivicDesk C project. Data lives only in this browser tab and resets when you refresh, unless you export it to a file.</div></footer>
 <div id="msg" role="status"></div>
 
 <script>
@@ -456,6 +462,49 @@ function benchmark() {
   }, 30);
 }
 
+/* ---------- data file shared with the C program (same format as its save and load options) ---------- */
+const clean = t => String(t).replace(/[|\r\n]/g, " ");
+const num = t => /^\d+$/.test(t) ? +t : NaN;
+function exportData() {
+  const out = ["CIVICDESK 1"];
+  for (const c of sys.all) {
+    out.push(["C", c.id, clean(c.name), clean(c.area), clean(c.dept), c.pri, c.filed].join("|"));
+    for (let n = c.history.head.next; n; n = n.next) out.push(["S", n.status, n.day, clean(n.remarks)].join("|"));
+  }
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob([out.join("\n") + "\n"], { type: "text/plain" }));
+  a.download = "civicdesk_data.txt"; a.click(); URL.revokeObjectURL(a.href);
+  toast(`Exported ${sys.all.length} complaints to civicdesk_data.txt.`);
+}
+function parseData(text) {
+  const lines = text.split(/\r?\n/), list = [], ids = new Set();
+  if (!lines[0].startsWith("CIVICDESK 1")) throw new Error("this is not a CivicDesk data file");
+  let cur = null;
+  lines.slice(1).forEach((ln, i) => {
+    if (!ln) return;
+    const f = ln.split("|"), bad = m => { throw new Error(`line ${i + 2}: ${m}`); };
+    if (f[0] === "C" && f.length === 7) {
+      const id = num(f[1]), pri = num(f[5]), filed = num(f[6]);
+      if (![id, pri, filed].every(Number.isInteger) || id < 1 || id > 999999 || pri > 2 || !f[2] || !f[3] || !f[4]) bad("invalid complaint record");
+      if (ids.has(id)) bad("duplicate complaint ID");
+      ids.add(id); cur = new Complaint(id, f[2], f[3], f[4], pri, filed); list.push(cur);
+    } else if (f[0] === "S" && f.length === 4 && cur) {
+      const st = num(f[1]), day = num(f[2]);
+      if (![st, day].every(Number.isInteger) || st < 1 || st > 3 || st <= cur.status || day < cur.history.tail.day) bad("invalid status record");
+      cur.history.append(st, f[3], day);
+    } else bad("unrecognised line");
+  });
+  return list;
+}
+function importData(file) {
+  file.text().then(text => {
+    const list = parseData(text);                       // throws before anything is changed
+    Object.assign(sys, { bst: new BST(), pq: new PriorityQueues(), undo: new UndoStack(), all: [] });
+    list.forEach(add);
+    $("hist").innerHTML = ""; show(null, ""); toast(`Imported ${list.length} complaints from ${file.name}.`);
+  }).catch(e => toast(`Could not import: ${e.message}. Nothing was changed.`));
+}
+
 /* ---------- wiring ---------- */
 DEPTS.forEach(d => $("dp").add(new Option(d)));
 PRI.forEach((p, i) => $("pr").add(new Option(p, i)));
@@ -474,6 +523,9 @@ $("dev").onchange = () => {
 $("bSort").onclick = sortReport; $("bAll").onclick = () => show(null, ""); $("bBench").onclick = benchmark;
 $("q").addEventListener("keydown", e => { if (e.key === "Enter") search(); });
 $("rows").addEventListener("click", e => { const tr = e.target.closest("tr[data-id]"); if (tr) $("cid").value = $("tid").value = tr.dataset.id; });
+$("bExport").onclick = exportData;
+$("bImport").onclick = () => $("fileIn").click();
+$("fileIn").onchange = e => { const f = e.target.files[0]; if (f) importData(f); e.target.value = ""; };
 render();
 </script>
 </body>
