@@ -462,6 +462,135 @@ static int test_history_last_day_after_removal(void)
     return failed_here;
 }
 
+/* ------------------------------------------------ saving and loading */
+
+#define TEST_FILE "civicdesk_test_data.tmp"
+
+static void write_text_file(const char *text)
+{
+    FILE *f = fopen(TEST_FILE, "w");
+    if (f != NULL) {
+        fputs(text, f);
+        fclose(f);
+    }
+}
+
+static int test_save_and_load_round_trip(void)
+{
+    GrievanceSystem a, b;
+    int failed_here = 0, i;
+    Complaint *c;
+    char error[100];
+
+    load_into(&a);
+    c = pqm_dequeue_next(&a.queues);                                /* process one complaint */
+    history_append(&c->history, STATUS_ASSIGNED, "Test remark", today_day());
+
+    CHECK(system_save(&a, TEST_FILE) == 0);
+    system_init(&b);
+    CHECK(system_load(&b, TEST_FILE, error, sizeof error) == 12);
+    CHECK(b.count == a.count);
+    CHECK(pqm_total(&b.queues) == pqm_total(&a.queues));
+
+    for (i = 0; i < a.count; i++) {
+        const Complaint *x = a.all[i];
+        const Complaint *y = bst_search(&b.bst, x->cid);
+        CHECK(y != NULL);
+        if (y == NULL)
+            continue;
+        CHECK(strcmp(x->name, y->name) == 0);
+        CHECK(strcmp(x->area, y->area) == 0);
+        CHECK(strcmp(x->department, y->department) == 0);
+        CHECK(x->priority == y->priority);
+        CHECK(x->filed_on == y->filed_on);
+        CHECK(complaint_status(x) == complaint_status(y));
+        CHECK(x->history.size == y->history.size);
+    }
+
+    while ((c = pqm_dequeue_next(&a.queues)) != NULL) {             /* same processing order */
+        Complaint *d = pqm_dequeue_next(&b.queues);
+        CHECK(d != NULL && d->cid == c->cid);
+    }
+    CHECK(pqm_total(&b.queues) == 0);
+
+    system_free(&a);
+    system_free(&b);
+    remove(TEST_FILE);
+    return failed_here;
+}
+
+static int test_load_rejects_invalid_files_and_keeps_data(void)
+{
+    static const char *bad_files[] = {
+        "HELLO\n",
+        "CIVICDESK 1\nC|5|A|X|Roads|2|100\nC|5|B|Y|Roads|1|100\n",
+        "CIVICDESK 1\nC|5|A|X|Roads|9|100\n",
+        "CIVICDESK 1\nS|1|100|Orphan status\n",
+        "CIVICDESK 1\nC|5|A|X|Roads|2|100\nS|3|101|\nS|2|102|\n",
+        "CIVICDESK 1\nsomething else\n"
+    };
+    GrievanceSystem sys;
+    int failed_here = 0, i;
+    char error[100];
+
+    load_into(&sys);
+    for (i = 0; i < 6; i++) {
+        write_text_file(bad_files[i]);
+        CHECK(system_load(&sys, TEST_FILE, error, sizeof error) == -1);
+        CHECK(error[0] != '\0');
+        CHECK(sys.count == 12);                                    /* current data untouched */
+        CHECK(bst_search(&sys.bst, 4821) != NULL);
+    }
+    write_text_file("CIVICDESK 1\n");                              /* a valid but empty file */
+    CHECK(system_load(&sys, TEST_FILE, error, sizeof error) == 0);
+    CHECK(sys.count == 0);
+
+    system_free(&sys);
+    remove(TEST_FILE);
+    return failed_here;
+}
+
+static int test_load_missing_file_fails(void)
+{
+    GrievanceSystem sys;
+    int failed_here = 0;
+    char error[100];
+
+    load_into(&sys);
+    CHECK(system_load(&sys, "this_file_does_not_exist.tmp", error, sizeof error) == -1);
+    CHECK(sys.count == 12);
+    system_free(&sys);
+    return failed_here;
+}
+
+static int test_save_replaces_separator_characters(void)
+{
+    GrievanceSystem a, b;
+    int failed_here = 0;
+    Complaint *c = complaint_create(77, "A|B", "Area|1", "Roads", PRIORITY_HIGH, today_day());
+    const Complaint *y;
+    char error[100];
+
+    system_init(&a);
+    history_append(&c->history, STATUS_ASSIGNED, "x|y\nz", today_day());
+    system_add_complaint(&a, c);
+
+    CHECK(system_save(&a, TEST_FILE) == 0);
+    system_init(&b);
+    CHECK(system_load(&b, TEST_FILE, error, sizeof error) == 1);
+    y = bst_search(&b.bst, 77);
+    CHECK(y != NULL);
+    if (y != NULL) {
+        CHECK(strcmp(y->name, "A B") == 0);
+        CHECK(strcmp(y->history.tail->remarks, "x y z") == 0);
+    }
+
+    system_free(&a);
+    system_free(&b);
+    remove(TEST_FILE);
+    return failed_here;
+}
+
 int main(void)
 {
     printf("CivicDesk tests\n");
@@ -489,6 +618,11 @@ int main(void)
     RUN(test_empty_bst_search_and_traversal);
     RUN(test_priority_queue_counts_are_consistent);
     RUN(test_history_last_day_after_removal);
+
+    RUN(test_save_and_load_round_trip);
+    RUN(test_load_rejects_invalid_files_and_keeps_data);
+    RUN(test_load_missing_file_fails);
+    RUN(test_save_replaces_separator_characters);
 
     printf("\n%d tests run, %d failed.\n", tests_run, tests_failed);
     return tests_failed == 0 ? 0 : 1;

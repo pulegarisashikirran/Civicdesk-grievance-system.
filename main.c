@@ -316,6 +316,44 @@ static void benchmark_menu(void)
     printf("  %-16s%10.2f ms\n", "BST Search", r.bst_ms);
 }
 
+static void ask_file_name(char *path, size_t size)
+{
+    read_line("File name (press Enter for civicdesk_data.txt): ", path, size);
+    if (path[0] == '\0')
+        copy_str(path, size, "civicdesk_data.txt");
+}
+
+static void save_data(void)
+{
+    char path[200];
+    printf("\n--- Save complaints to a file ---\n");
+    ask_file_name(path, sizeof path);
+    if (system_save(&g_system, path) == 0)
+        printf("  Saved %d complaints to %s\n", g_system.count, path);
+    else
+        printf("  Could not write to %s\n", path);
+}
+
+static void load_data(void)
+{
+    char path[200], answer[16], error[100];
+    int n;
+
+    printf("\n--- Load complaints from a file ---\n");
+    ask_file_name(path, sizeof path);
+    read_line("This replaces all current complaints and clears undo. Continue? (y/n): ",
+              answer, sizeof answer);
+    if (answer[0] != 'y' && answer[0] != 'Y') {
+        printf("  Cancelled. Nothing was changed.\n");
+        return;
+    }
+    n = system_load(&g_system, path, error, sizeof error);
+    if (n < 0)
+        printf("  Could not load %s (%s). Nothing was changed.\n", path, error);
+    else
+        printf("  Loaded %d complaints from %s\n", n, path);
+}
+
 /* ------------------------------------------------------------ main loop */
 static void print_menu(void)
 {
@@ -328,7 +366,9 @@ static void print_menu(void)
     printf(" 6. View status history of a complaint\n");
     printf(" 7. Sort and view reports\n");
     printf(" 8. Benchmark sorting and searching\n");
-    printf(" 9. Exit\n");
+    printf(" 9. Save complaints to a file\n");
+    printf("10. Load complaints from a file\n");
+    printf(" 0. Exit\n");
     printf("===================================================\n");
     printf(" Waiting in queues -> Urgent: %d | High: %d | Normal: %d\n",
            pqm_count(&g_system.queues, PRIORITY_URGENT),
@@ -356,7 +396,7 @@ int main(void)
 
     for (;;) {
         print_menu();
-        read_line(" Enter your choice (1-9): ", choice, sizeof choice);
+        read_line(" Enter your choice (0-10): ", choice, sizeof choice);
         if (strcmp(choice, "1") == 0)      file_complaint();
         else if (strcmp(choice, "2") == 0) process_next();
         else if (strcmp(choice, "3") == 0) update_status();
@@ -365,11 +405,13 @@ int main(void)
         else if (strcmp(choice, "6") == 0) view_history();
         else if (strcmp(choice, "7") == 0) reports_menu();
         else if (strcmp(choice, "8") == 0) benchmark_menu();
-        else if (strcmp(choice, "9") == 0) {
+        else if (strcmp(choice, "9") == 0) save_data();
+        else if (strcmp(choice, "10") == 0) load_data();
+        else if (strcmp(choice, "0") == 0) {
             printf("Thank you for using CivicDesk.\n");
             break;
         } else
-            printf("  Invalid choice. Enter a number from 1 to 9.\n");
+            printf("  Invalid choice. Enter a number from 0 to 10.\n");
     }
     return 0;
 }

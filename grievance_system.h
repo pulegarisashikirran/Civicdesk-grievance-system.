@@ -21,4 +21,10 @@ int  system_add_complaint(GrievanceSystem *sys, Complaint *c);  /* 0 if the ID a
 int  system_new_id(const GrievanceSystem *sys);                 /* random unused 4-digit ID    */
 void system_free(GrievanceSystem *sys);                         /* frees everything it owns    */
 
+/* Data files: a plain text file with one line per complaint and one line per later status. */
+int  system_save(const GrievanceSystem *sys, const char *path);  /* 0 on success, -1 on failure */
+/* Replaces ALL current data with the file's content. Returns the number of complaints loaded,
+ * or -1 on failure (a message goes into err and the current data is left untouched). */
+int  system_load(GrievanceSystem *sys, const char *path, char *err, size_t err_size);
+
 #endif

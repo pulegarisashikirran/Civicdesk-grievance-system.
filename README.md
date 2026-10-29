@@ -1,6 +1,6 @@
 # CivicDesk — Public Grievance Redressal System (C)
 
-CivicDesk is a menu-driven complaint-management application and data-structures project written in **C**. Citizens complaints are registered, prioritised through three linked-list queues, tracked through a per-complaint status history, indexed in a binary search tree, and reported with classical searching and sorting algorithms. Every status change can be reversed with an undo stack. All names, areas and complaints in the sample data are fictional, and nothing is sent to any real government system.
+CivicDesk is a menu-driven complaint-management application and data-structures project written in **C**. Citizens' complaints are registered, prioritised through three linked-list queues, tracked through a per-complaint status history, indexed in a binary search tree, and reported with classical searching and sorting algorithms. Every status change can be reversed with an undo stack. All names, areas and complaints in the sample data are fictional, and nothing is sent to any real government system.
 
 Repository: https://github.com/pulegarisashikirran/civicdesk-grievance-system
 
@@ -21,7 +21,8 @@ The live demo is a JavaScript version of the same logic, made for easy demonstra
 * A benchmark that times all five sorts and all three search methods on the same random data.
 * Pending-day calculation that stops counting once a complaint is resolved.
 * 12 pre-loaded sample complaints (some already in progress or resolved) so every feature can be demonstrated immediately.
-* 23 automated unit tests covering the data structures, algorithms and system rules.
+* Save and load: all complaints, with their full status history, can be written to a plain text file and loaded back, so data survives closing the program.
+* 27 automated unit tests covering the data structures, algorithms, saving and loading, and system rules.
 * Complete memory clean-up on exit: every node and complaint is freed (checked with AddressSanitizer).
 
 ## Data Structures & Algorithms — Topics Used, Locations & Logic
@@ -186,7 +187,9 @@ CivicDesk tracks how long every complaint has been open. Dates are stored as day
 | `6` View status history | Print the full status trail of one complaint |
 | `7` Sort and view reports | Sort by pending days, area, ID or priority with any of the five algorithms |
 | `8` Benchmark | Time all sorts and searches on random data |
-| `9` Exit | Quit the program |
+| `9` Save complaints to a file | Write every complaint and its status history to a text file (default `civicdesk_data.txt`) |
+| `10` Load complaints from a file | Replace the current data with the contents of a saved file; invalid files are rejected and nothing changes |
+| `0` Exit | Quit the program |
 
 ## Complexity Summary
 
@@ -210,6 +213,23 @@ CivicDesk tracks how long every complaint has been open. Dates are stored as day
 
 \* Bubble sort reaches O(n) only with the early-exit check on already sorted data.
 \*\* Recursion always continues into the smaller partition first, so the stack depth stays O(log n).
+
+## Data File Format
+
+Option 9 writes a plain text file that can be opened in any editor. Each line has fields separated by the `|` character:
+
+```
+CIVICDESK 1
+C|4821|Ravi|Shadnagar|Water Supply|0|20753
+S|1|20755|Assigned to Water Supply department
+C|1307|Anita|Gachibowli|Electricity|1|20750
+```
+
+* `C` lines hold one complaint: ID, name, area, department, priority (0 Urgent, 1 High, 2 Normal) and the filing day.
+* `S` lines hold a later status of the complaint above them: status (1 Assigned, 2 In Progress, 3 Resolved), the day, and the remarks. The first status, Filed, is implied by the `C` line.
+* Days are stored as day numbers (days since 1 January 1970).
+* The `|` character and line breaks cannot be stored inside a field, so they are replaced with spaces when saving.
+* On loading, the whole file is checked first. If any line is invalid, nothing is changed.
 
 ## Local development
 
@@ -276,7 +296,7 @@ _Add screenshots of the menu, processing a complaint, a status history, an undo,
 
 ```
 main.c                Menu-driven interface (input handling, printing, menu actions)
-grievance_system.h/.c Connects BST + queues + undo stack + complaint array; owns and frees them
+grievance_system.h/.c Connects BST + queues + undo stack + complaint array; owns and frees them; saves and loads data files
 complaint.h/.c        Complaint record (owns a StatusHistory), priorities, departments
 status_list.h/.c      Singly linked list for each complaint's status history
 queues.h/.c           LinkedQueue (FIFO) and PriorityQueueManager (Urgent / High / Normal)
@@ -285,7 +305,7 @@ bst.h/.c              Binary Search Tree of complaints keyed by ID
 search_sort.h/.c      linear_search, binary_search, five sorts, comparators, benchmarks
 sample_data.h/.c      12 sample complaints and a random complaint generator for benchmarks
 util.h/.c             Safe allocation, string helpers, date conversion
-test_civicdesk.c      23 automated tests for the structures, algorithms and system rules
+test_civicdesk.c      27 automated tests for the structures, algorithms, data files and system rules
 Makefile              Builds civicdesk and test_civicdesk
 index.html            Web demo (JavaScript version of the same logic, hosted on GitHub Pages)
 README.md             This document
@@ -294,7 +314,7 @@ LICENSE               MIT License
 
 ## Important limits / future improvement
 
-* All data lives in memory and is lost when the program closes. Saving to a file (for example a binary or CSV file) would make complaints persistent.
+* Data lives in memory and is lost when the program closes unless it is saved with option 9. Several users or programs cannot share the data; that would need a server and a database.
 * The BST is not self-balancing. An AVL or Red-Black tree would guarantee O(log n) even for sorted IDs.
 * Priority has only three fixed levels. A heap-based priority queue would allow finer ranking, for example by pending days within a priority.
 * Undo covers status updates only; filing and processing a complaint cannot be undone.
@@ -305,11 +325,11 @@ LICENSE               MIT License
 
 The requested direction is a complaint-management project built only on the topics covered in the Data Structures course: searching, sorting, linked lists, stack, queue and BST, at a moderate difficulty level. The system is a classroom demonstration and not a replacement for a real government grievance portal.
 
-**Implemented in this version:** complaint registration; three-level priority queues; status history with linked lists; undo with a stack; BST index; BST, binary and linear search; five sorting algorithms with timing; benchmark; sample data; automated tests; full memory clean-up.
+**Implemented in this version:** complaint registration; three-level priority queues; status history with linked lists; undo with a stack; BST index; BST, binary and linear search; five sorting algorithms with timing; benchmark; sample data; saving and loading of data files; automated tests; full memory clean-up.
 
-**Verified:** the 23 tests in `test_civicdesk.c` pass, including under AddressSanitizer and UndefinedBehaviorSanitizer with no errors or memory leaks. They check that every sorting algorithm produces the same order as a reference sort on arrays of 0, 1, 2, 50 and 400 items for every sort field, that quick sort handles sorted and reversed input, that merge sort is stable, that BST search and binary search agree for every complaint, that queues serve Urgent before High before Normal and keep first-in-first-out order inside a level, that undo restores earlier statuses in reverse order and never removes "Filed", that duplicate IDs are rejected, that the system grows past its initial capacity, and that an empty system, an empty tree, the queue counts and the history dates after an undo behave correctly. A full pass through every menu option was also run, including invalid input and end-of-input handling.
+**Verified:** the 27 tests in `test_civicdesk.c` pass, including under AddressSanitizer and UndefinedBehaviorSanitizer with no errors or memory leaks. They check that every sorting algorithm produces the same order as a reference sort on arrays of 0, 1, 2, 50 and 400 items for every sort field, that quick sort handles sorted and reversed input, that merge sort is stable, that BST search and binary search agree for every complaint, that queues serve Urgent before High before Normal and keep first-in-first-out order inside a level, that undo restores earlier statuses in reverse order and never removes "Filed", that duplicate IDs are rejected, that the system grows past its initial capacity, and that an empty system, an empty tree, the queue counts and the history dates after an undo behave correctly, that saving and then loading a data file restores every complaint, its status history and the queue order, and that invalid or missing files are rejected without changing the current data. A full pass through every menu option was also run, including invalid input and end-of-input handling.
 
-**Still pending / sensible next steps:** persistence to a file, a self-balancing tree, a graphical or web interface, and more tests for the menu input handling.
+**Still pending / sensible next steps:** sharing data between programs through a server and a database, a self-balancing tree, a graphical or web interface, and more tests for the menu input handling.
 
 ## Project purpose
 
@@ -319,5 +339,10 @@ Educational demonstration of queues, singly linked lists, stacks, binary search 
 
 This project is licensed under the [MIT License](LICENSE).
 
+## Author
 
+**Pulegari Shashi Kiran Reddy**
+B.Tech CSE, 2nd Year — Symbiosis Institute of Technology, Hyderabad
+GitHub: [pulegarisashikirran](https://github.com/pulegarisashikirran)
 
+_Built for the Data Structures course, Assessment 3 (October 2026)._
