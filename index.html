@@ -390,6 +390,8 @@ function render() {
     <td><span class="pill p${c.pri}">${PRI[c.pri]}</span></td><td><span class="pill s${c.status}">${ST[c.status]}</span></td><td>${c.pending()} days</td></tr>`).join("")
     : `<tr><td colspan="7">No complaints found.</td></tr>`;
   $("note").textContent = view.note || `${list.length} complaints, in the order they were filed.`;
+  // Persist after every screen update so new complaints and status changes survive refresh.
+  if (!persistData()) toast("Warning: browser storage is unavailable; changes may not survive refresh.");
 }
 const show = (list, note) => { view = { list, note }; render(); };
 const getId = () => parseInt($("cid").value.trim(), 10);
