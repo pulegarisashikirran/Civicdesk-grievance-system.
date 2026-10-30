@@ -112,8 +112,8 @@ body:not(.dev) .bar.s,.bar.t{grid-template-columns:1fr auto}
   </section>
 
   <section class="card">
-    <h2>Data file</h2><p class="sub">Exchange complaints with the terminal program. Importing replaces what is on screen.</p>
-    <div class="row" style="margin-top:0"><button id="bExport">Export to file</button><button id="bImport" class="alt">Import from file</button></div>
+    <h2>Data file</h2><p class="sub">Changes are saved in this browser automatically. Export and import exchange complaints with the terminal program.</p>
+    <div class="row" style="margin-top:0"><button id="bExport">Export to file</button><button id="bImport" class="alt">Import from file</button><button id="bReset" class="alt">Reset to sample data</button></div>
     <input id="fileIn" type="file" accept=".txt,text/plain" hidden>
   </section>
 
@@ -167,7 +167,7 @@ body:not(.dev) .bar.s,.bar.t{grid-template-columns:1fr auto}
 </div>
 </main>
 
-<footer><div class="in">This page is a JavaScript version of the CivicDesk C project. Data lives only in this browser tab and resets when you refresh, unless you export it to a file.</div></footer>
+<footer><div class="in">This page is a JavaScript version of the CivicDesk C project. Data is saved in this browser on this device. Use Export to move it elsewhere.</div></footer>
 <div id="msg" role="status"></div>
 
 <script>
@@ -357,6 +357,7 @@ for (const [id, nm, ar, dp, pr, ago, steps] of SAMPLE) {
 let view = { list: null, note: "" }, toastTimer;
 function toast(t) { const m = $("msg"); m.textContent = t; m.classList.add("on"); clearTimeout(toastTimer); toastTimer = setTimeout(() => m.classList.remove("on"), 3500); }
 function render() {
+  saveLocal();
   $("trays").innerHTML = PRI.map((p, i) => {
     const q = sys.pq.qs[i]; let chips = "", k = 0;
     for (let n = q.front; n && k < 6; n = n.next, k++) chips += `<span class="chip${k === 0 ? " head" : ""}">${n.x.id}</span>`;
@@ -465,14 +466,17 @@ function benchmark() {
 /* ---------- data file shared with the C program (same format as its save and load options) ---------- */
 const clean = t => String(t).replace(/[|\r\n]/g, " ");
 const num = t => /^\d+$/.test(t) ? +t : NaN;
-function exportData() {
+function dataText() {
   const out = ["CIVICDESK 1"];
   for (const c of sys.all) {
     out.push(["C", c.id, clean(c.name), clean(c.area), clean(c.dept), c.pri, c.filed].join("|"));
     for (let n = c.history.head.next; n; n = n.next) out.push(["S", n.status, n.day, clean(n.remarks)].join("|"));
   }
+  return out.join("\n") + "\n";
+}
+function exportData() {
   const a = document.createElement("a");
-  a.href = URL.createObjectURL(new Blob([out.join("\n") + "\n"], { type: "text/plain" }));
+  a.href = URL.createObjectURL(new Blob([dataText()], { type: "text/plain" }));
   a.download = "civicdesk_data.txt"; a.click(); URL.revokeObjectURL(a.href);
   toast(`Exported ${sys.all.length} complaints to civicdesk_data.txt.`);
 }
@@ -505,6 +509,19 @@ function importData(file) {
   }).catch(e => toast(`Could not import: ${e.message}. Nothing was changed.`));
 }
 
+/* ---------- automatic save in this browser ---------- */
+const KEY = "civicdesk-data";
+function saveLocal() { try { localStorage.setItem(KEY, dataText()); } catch (e) { /* storage unavailable */ } }
+function loadLocal() {
+  try {
+    const text = localStorage.getItem(KEY);
+    if (!text) return;
+    const list = parseData(text);                       // throws before anything is changed
+    Object.assign(sys, { bst: new BST(), pq: new PriorityQueues(), undo: new UndoStack(), all: [] });
+    list.forEach(add);
+  } catch (e) { /* nothing saved, or unreadable: keep the sample data */ }
+}
+
 /* ---------- wiring ---------- */
 DEPTS.forEach(d => $("dp").add(new Option(d)));
 PRI.forEach((p, i) => $("pr").add(new Option(p, i)));
@@ -526,6 +543,13 @@ $("rows").addEventListener("click", e => { const tr = e.target.closest("tr[data-
 $("bExport").onclick = exportData;
 $("bImport").onclick = () => $("fileIn").click();
 $("fileIn").onchange = e => { const f = e.target.files[0]; if (f) importData(f); e.target.value = ""; };
+$("bReset").onclick = () => {
+  if (confirm("Reset to the 12 sample complaints? Complaints saved in this browser will be erased.")) {
+    try { localStorage.removeItem(KEY); } catch (e) { /* ignore */ }
+    location.reload();
+  }
+};
+loadLocal();
 render();
 </script>
 </body>
