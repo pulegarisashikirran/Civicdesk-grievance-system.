@@ -1,0 +1,6 @@
+﻿# Compiled executables
+*.exe
+# Compiled object files
+*.o
+# Local CivicDesk complaint data
+/civicdesk
